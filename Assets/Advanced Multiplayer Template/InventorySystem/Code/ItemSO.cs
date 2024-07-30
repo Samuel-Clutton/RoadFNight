@@ -2,13 +2,14 @@
 using System.Linq;
 using UnityEngine;
 using Mirror;
+using UnityEngine.Serialization;
 
 namespace RedicionStudio.InventorySystem {
 
 	[CreateAssetMenu(fileName = "New Item", menuName = "Inventory System")]
 	public class ItemSO : ScriptableObject {
 
-		public string uniqueName;
+		[FormerlySerializedAs("uniqueName")] public string uniqueID;
 
 		private static Dictionary<int, ItemSO> _itemSOs;
 
@@ -16,12 +17,12 @@ namespace RedicionStudio.InventorySystem {
 		private static void Load() {
 			ItemSO[] itemSOs = Resources.LoadAll<ItemSO>(string.Empty);
 
-			List<string> duplicates = itemSOs.ToList().GroupBy(item => item.uniqueName)
+			List<string> duplicates = itemSOs.ToList().GroupBy(item => item.uniqueID)
 				.Where(group => group.Count() > 1)
 				.Select(group => group.Key).ToList();
 
 			if (duplicates.Count == 0) {
-				_itemSOs = itemSOs.ToDictionary(item => item.uniqueName.GetStableHashCode(), item => item);
+				_itemSOs = itemSOs.ToDictionary(item => item.uniqueID.GetStableHashCode(), item => item);
 				Debug.Log(_itemSOs.Count + " item scriptable objects have been loaded.");
 				return;
 			}
@@ -79,7 +80,7 @@ namespace RedicionStudio.InventorySystem {
 		}
 
 		public virtual string GetTooltipText() {
-			return tooltipText.Replace("{NAME}", uniqueName).Replace("{PRICE}", price.ToString()).Replace("{SELL_PRICE}", sellPrice.ToString());
+			return tooltipText.Replace("{NAME}", uniqueID).Replace("{PRICE}", price.ToString()).Replace("{SELL_PRICE}", sellPrice.ToString());
 		}
 	}
 }

@@ -48,9 +48,24 @@ public class PlayerInteractionModule : NetworkBehaviour {
 
 	[Command]
 	public void CmdInteract(Vector3 position, Vector3 forward) {
+		Debug.Log($"CmdInteract: Received command with Position={position}, Forward={forward}, Connection={connectionToClient}");
 		Raycast(position, forward);
-		if (currentInteractable != null) {
-			currentInteractable.OnServerInteract(playerInventory);
+		if (currentInteractable != null)
+		{
+			Debug.Log($"CmdInteract: Attempting to take item of type {currentInteractable.GetType()}");
+			if (currentInteractable is INetInteractable<PlayerInventoryModule>)
+			{
+				Debug.Log("CmdInteract: Interactable is of correct type");
+				currentInteractable.OnServerInteract(playerInventory);
+			}
+			else
+			{
+				Debug.LogError("CmdInteract: Interactable is NOT of correct type");
+			}
+		}
+		else
+		{
+			Debug.Log("CmdInteract: The item you are trying to pick up is null");
 		}
 	}
 
@@ -68,7 +83,7 @@ public class PlayerInteractionModule : NetworkBehaviour {
             return;
         }
 
-        instantiatedUIMessage.GetComponent<UIMessage>().ShowMessage("Item: " + item.itemSO.uniqueName + " " + amount + "x"  + " purchased");
+        instantiatedUIMessage.GetComponent<UIMessage>().ShowMessage("Item: " + item.itemSO.uniqueID + " " + amount + "x"  + " purchased");
         CmdAddItem(player, itemPrice, item, amount);
     }
 
@@ -93,7 +108,7 @@ public class PlayerInteractionModule : NetworkBehaviour {
 
         instantiatedUIMessage = Instantiate(UIMessagePrefab);
 
-        instantiatedUIMessage.GetComponent<UIMessage>().ShowMessage("Item: " + item.itemSO.uniqueName + " " + amount + "x" + " sold" + " for" + "$" + sellPrice);
+        instantiatedUIMessage.GetComponent<UIMessage>().ShowMessage("Item: " + item.itemSO.uniqueID + " " + amount + "x" + " sold" + " for" + "$" + sellPrice);
         player.CmdDropAndRemoveItem(itemSlotIndex, true);
         CmdRemoveItem(player, sellPrice, item, amount);
     }
@@ -182,13 +197,23 @@ public class PlayerInteractionModule : NetworkBehaviour {
 
 		_keyboard = Keyboard.current;
 
-		if (currentInteractable == null || _keyboard == null) {
+		if (currentInteractable == null) {
 			return;
 		}
 
 		if (_keyboard.fKey.wasPressedThisFrame) {
-			currentInteractable.OnClientInteract(playerInventory);
-			CmdInteract(_position, _forward);
+			Debug.Log("F key was pressed"); // Confirm input detection
+			if (currentInteractable != null)
+			{
+				Debug.Log($"Interacting with {currentInteractable.GetType()}");
+				currentInteractable.OnClientInteract(playerInventory);
+				CmdInteract(_position, _forward); // Ensure this line is reached
+				Debug.Log("CmdInteract called"); // Confirm command is being called
+			}
+			else
+			{
+				Debug.Log("Update: No interactable object found.");
+			}
 		}
     }
 }

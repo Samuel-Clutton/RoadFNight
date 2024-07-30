@@ -15,19 +15,19 @@ namespace RedicionStudio.InventorySystem {
         public override bool CanBeUsed(PlayerInventoryModule playerInventory, int slotIndex) {
 			return slotIndex == 0 &&
 				base.CanBeUsed(playerInventory, slotIndex) &&
-				(_requiredAmmo == null || (playerInventory.slots[1].amount > 0 && playerInventory.slots[1].item.itemSO.name == _requiredAmmo.name));
+				(_requiredAmmo == null || (playerInventory.Slots[1].amount > 0 && playerInventory.Slots[1].item.itemSO.name == _requiredAmmo.name));
 		}
 
 		public override void Use(PlayerInventoryModule playerInventory, int slotIndex) {
 			if (_requiredAmmo != null) {
-				ItemSlot slotB = playerInventory.slots[1];
+				ItemSlot slotB = playerInventory.Slots[1];
 				slotB.amount--;
-				playerInventory.slots[1] = slotB;
+				playerInventory.Slots[1] = slotB;
 			}
 
 			base.Use(playerInventory, slotIndex);
 
-			playerInventory.RpcOnItemUsed(playerInventory.slots[0].item);
+			playerInventory.RpcOnItemUsed(playerInventory.Slots[0].item);
 		}
 
 		public override void OnUsed(PlayerInventoryModule playerInventory) {

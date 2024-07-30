@@ -9,18 +9,32 @@ namespace RedicionStudio.InventorySystem {
 		public float cooldownInSeconds;
 		public string cooldownTag;
 
-		public virtual bool CanBeUsed(PlayerInventoryModule playerInventory, int slotIndex) {
-			return playerInventory.GetCooldown(cooldownTag.GetStableHashCode()) <= 0f;
-		}
-
 		/// <summary>
 		/// (Server)
 		/// </summary>
 		public virtual void Use(PlayerInventoryModule playerInventory, int slotIndex) {
-			if (cooldownInSeconds > 0f) {
-				playerInventory.SetCooldown(cooldownTag.GetStableHashCode(), cooldownInSeconds);
+			if (cooldownInSeconds > 0f)
+			{
+				string itemSoUniqueID = playerInventory.Slots[slotIndex].item.itemSO.uniqueID;
+				string tag = GetCooldownTag();
+				playerInventory.SetCooldown(itemSoUniqueID, tag, cooldownInSeconds);
 			}
 		}
+
+		
+		public virtual bool CanBeUsed(PlayerInventoryModule playerInventory, int slotIndex)
+		{
+			string itemSoUniqueID = playerInventory.slots[slotIndex].item.itemSO.uniqueID;
+			string tag = GetCooldownTag();
+
+			return playerInventory.GetCooldown(itemSoUniqueID, tag) == 0f;
+		}
+
+		public virtual string GetCooldownTag()
+		{
+			return cooldownTag;
+		}
+		
 
 		/// <summary>
 		/// (Client)

@@ -350,12 +350,12 @@ public class Player : NetworkBehaviour {
 			MasterServer.MSManager.SendPacket(new MasterServer.AccountDataResponsePacket { Id = id, Funds = funds, OwnsProperty = true, Nutrition = playerNutrition.value, ExperiencePoints = experiencePoints });
 			
 			// Prepare and save inventory data to master server
-			MasterServer.MServer.InventoryJSONData[] inventoryJSONData = new MasterServer.MServer.InventoryJSONData[playerInventory.slots.Count];
-			for (int i = 0; i < playerInventory.slots.Count; i++) {
+			MasterServer.MServer.InventoryJSONData[] inventoryJSONData = new MasterServer.MServer.InventoryJSONData[playerInventory.Slots.Count];
+			for (int i = 0; i < playerInventory.Slots.Count; i++) {
 				inventoryJSONData[i] = new MasterServer.MServer.InventoryJSONData {
-					hash = playerInventory.slots[i].item.hash,
-					amount = playerInventory.slots[i].amount,
-					shelfLife = playerInventory.slots[i].item.currentShelfLifeInSeconds
+					hash = playerInventory.Slots[i].item.hash,
+					amount = playerInventory.Slots[i].amount,
+					shelfLife = playerInventory.Slots[i].item.currentShelfLifeInSeconds
 				};
 			}
 			MasterServer.MSClient.SaveInventory(id, inventoryJSONData);

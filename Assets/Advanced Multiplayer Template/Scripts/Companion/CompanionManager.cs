@@ -23,19 +23,19 @@ public class CompanionManager : NetworkBehaviour
             return;
         }
 
-        if (GetComponent<RedicionStudio.InventorySystem.PlayerInventoryModule>().slots[3].item.itemSO != null)
+        if (GetComponent<RedicionStudio.InventorySystem.PlayerInventoryModule>().Slots[3].item.itemSO != null)
         {
-            if (inventoryModule.slots[3].item.itemSO is RedicionStudio.InventorySystem.CompanionItemSO)
+            if (inventoryModule.Slots[3].item.itemSO is RedicionStudio.InventorySystem.CompanionItemSO)
             {
                 foreach (CompanionItem companion in companions)
                 {
-                    if (currentCompanionName != inventoryModule.slots[3].item.itemSO.uniqueName)
+                    if (currentCompanionName != inventoryModule.Slots[3].item.itemSO.uniqueID)
                     {
-                        if(companion.name == inventoryModule.slots[3].item.itemSO.uniqueName && !isCompanionInstantiated)
+                        if(companion.name == inventoryModule.Slots[3].item.itemSO.uniqueID && !isCompanionInstantiated)
                         {
                             Vector3 companionSpawnPosition = new Vector3(transform.position.x - 2, transform.position.y, transform.position.z);
 
-                            CmdInstantiateCompanion(gameObject, GetComponent<Player>().username, inventoryModule.slots[3].item.itemSO.uniqueName, true, companionSpawnPosition, transform.rotation);
+                            CmdInstantiateCompanion(gameObject, GetComponent<Player>().username, inventoryModule.Slots[3].item.itemSO.uniqueID, true, companionSpawnPosition, transform.rotation);
                         }
                     }
                 }

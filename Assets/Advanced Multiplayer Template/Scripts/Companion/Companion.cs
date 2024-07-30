@@ -45,7 +45,7 @@ public class Companion : NetworkBehaviour
         if(companionText != null)
             companionText.text = ownerName + "'s" + " companion";
 
-        if (owner.GetComponent<RedicionStudio.InventorySystem.PlayerInventoryModule>().slots[3].item.itemSO == null)
+        if (owner.GetComponent<RedicionStudio.InventorySystem.PlayerInventoryModule>().Slots[3].item.itemSO == null)
         {
             if(isServer)
             {

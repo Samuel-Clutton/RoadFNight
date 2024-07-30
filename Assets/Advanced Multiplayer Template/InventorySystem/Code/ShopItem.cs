@@ -61,7 +61,7 @@ namespace RedicionStudio.InventorySystem
 
             _localPlayer = NetworkClient.localPlayer.gameObject;
 
-            item = new Item(itemSO.uniqueName, itemSO is ConsumableItemSO consumableItemSO ? consumableItemSO.shelfLifeInSeconds : 0f);
+            item = new Item(itemSO.uniqueID, itemSO is ConsumableItemSO consumableItemSO ? consumableItemSO.shelfLifeInSeconds : 0f);
 
             _localPlayer.GetComponent<PlayerInteractionModule>().AddItem(_localPlayer.GetComponent<PlayerInventoryModule>(), itemPrice, item, amount);
         }

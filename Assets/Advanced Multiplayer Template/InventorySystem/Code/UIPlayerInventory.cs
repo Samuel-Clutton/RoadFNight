@@ -41,7 +41,7 @@ namespace RedicionStudio.InventorySystem {
             #endregion
         }
 
-        public static PlayerInventoryModule playerInventory;
+        public static PlayerInventoryModule PlayerInventory;
 
 		public static void SetActive(bool value) {
 			_instance._content.SetActive(value);
@@ -67,8 +67,8 @@ namespace RedicionStudio.InventorySystem {
 		[SerializeField] private UISlot _uISlotPrefab;
 
 		private void OnUISlotPointerDown(ItemSlot slot, int slotIndex) {
-			if (4 <= slotIndex && slotIndex < playerInventory.slots.Count && playerInventory.slots[slotIndex].amount > 0 && playerInventory.slots[slotIndex].item.itemSO is UseableItemSO usableItemSO) {
-				playerInventory.CmdUseItem(slotIndex);
+			if (4 <= slotIndex && slotIndex < PlayerInventory.Slots.Count && PlayerInventory.Slots[slotIndex].amount > 0 && PlayerInventory.Slots[slotIndex].item.itemSO is UseableItemSO usableItemSO) {
+				PlayerInventory.CmdUseItem(slotIndex);
 			}
 		}
 
@@ -94,7 +94,7 @@ namespace RedicionStudio.InventorySystem {
 
 			_uISlot.gameObject.name = slotIndex.ToString();
 
-			_slot = playerInventory.slots[slotIndex];
+			_slot = PlayerInventory.Slots[slotIndex];
 
 			if (_slot.amount > 0) {
 				// Valid
@@ -105,7 +105,7 @@ namespace RedicionStudio.InventorySystem {
 				_uISlot.image.sprite = _slot.item.itemSO.sprite;
                 _uISlot.sellPrice = _slot.item.itemSO.sellPrice;
                 _uISlot.item = _slot.item;
-                _uISlot.playerInteractionModule = playerInventory.GetComponent<PlayerInteractionModule>();
+                _uISlot.playerInteractionModule = PlayerInventory.GetComponent<PlayerInteractionModule>();
                 _uISlot.itemSlotIndex = slotIndex;
                 itemShopInteraction.Refresh();
                 /*if (_slot.item.itemSO is UseableItemSO usableItemSO) {
@@ -144,9 +144,9 @@ namespace RedicionStudio.InventorySystem {
 		}
 
 		private void Refresh() {
-			ClearAndInstantiateUISlots(_slotsContent, _uISlotPrefab.gameObject, playerInventory.slots.Count - 4);
+			ClearAndInstantiateUISlots(_slotsContent, _uISlotPrefab.gameObject, PlayerInventory.Slots.Count - 4);
 
-			for (int i = 0; i < playerInventory.slots.Count; i++) {
+			for (int i = 0; i < PlayerInventory.Slots.Count; i++) {
 				UpdateSlot(i);
 			}
 		}
@@ -163,7 +163,7 @@ namespace RedicionStudio.InventorySystem {
 				return;
 			}
 
-			for (int i = 0; i < playerInventory.slots.Count; i++) {
+			for (int i = 0; i < PlayerInventory.Slots.Count; i++) {
 				if (i == 0) {
 					_uISlot = slotA;
 				}
@@ -180,10 +180,10 @@ namespace RedicionStudio.InventorySystem {
 					_uISlot = _instantiatedGOs[i - 4];
 				}
 
-				_slot = playerInventory.slots[i];
+				_slot = PlayerInventory.Slots[i];
 
 				if (_slot.amount > 0 && _slot.item.itemSO is UseableItemSO useableItemSO) {
-					_uISlot.cooldownIndicator.fillAmount = useableItemSO.cooldownInSeconds > 0f ? playerInventory.GetCooldown(useableItemSO.cooldownTag.GetStableHashCode()) / useableItemSO.cooldownInSeconds : 0f; // ?
+					_uISlot.cooldownIndicator.fillAmount = useableItemSO.cooldownInSeconds > 0f ? PlayerInventory.GetCooldown(useableItemSO.uniqueID, useableItemSO.cooldownTag) / useableItemSO.cooldownInSeconds : 0f; // ?
 				}
 				else {
 					_uISlot.cooldownIndicator.fillAmount = 0f;

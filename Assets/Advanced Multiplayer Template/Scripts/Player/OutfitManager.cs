@@ -48,15 +48,15 @@ public class OutfitManager : NetworkBehaviour
             return;
         }
 
-        if (GetComponent<RedicionStudio.InventorySystem.PlayerInventoryModule>().slots[2].item.itemSO != null) // expensive but we need to fire an event to update this when we change the slot to change to null or active
+        if (GetComponent<RedicionStudio.InventorySystem.PlayerInventoryModule>().Slots[2].item.itemSO != null) // expensive but we need to fire an event to update this when we change the slot to change to null or active
         {
-            if (inventoryModule.slots[2].item.itemSO is RedicionStudio.InventorySystem.OutfitItemSO)
+            if (inventoryModule.Slots[2].item.itemSO is RedicionStudio.InventorySystem.OutfitItemSO)
             {
                 foreach(OutfitItem outfit in outfits)
                 {
-                    if (currentOutfitName != inventoryModule.slots[2].item.itemSO.uniqueName)
+                    if (currentOutfitName != inventoryModule.Slots[2].item.itemSO.uniqueID)
                     {
-                        CmdSetOutfit(inventoryModule.slots[2].item.itemSO.uniqueName);
+                        CmdSetOutfit(inventoryModule.Slots[2].item.itemSO.uniqueID);
                     }
                 }
             }

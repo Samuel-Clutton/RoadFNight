@@ -21,7 +21,7 @@ namespace RedicionStudio.InventorySystem
 
                 _instantiatedItem.transform.SetParent(shopItemsContent);
                 _instantiatedItem.GetComponent<ShopItem>().itemSO = _item;
-                _instantiatedItem.GetComponent<ShopItem>().itemName = _item.uniqueName;
+                _instantiatedItem.GetComponent<ShopItem>().itemName = _item.uniqueID;
                 _instantiatedItem.GetComponent<ShopItem>().amount = _item.stackSize;
                 _instantiatedItem.GetComponent<ShopItem>().itemRarity = _item.rarity.ToString();
                 _instantiatedItem.GetComponent<ShopItem>().itemSprite = _item.sprite;

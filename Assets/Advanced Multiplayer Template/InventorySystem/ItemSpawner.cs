@@ -16,7 +16,7 @@ public class ItemSpawner : MonoBehaviour {
 
 		GameObject gO = Instantiate(ConfigurationSO.Instance.itemDropPrefab, transform.position, transform.rotation);
 		ItemDrop itemDrop = gO.GetComponent<ItemDrop>();
-		itemDrop.item = new Item(itemSO.uniqueName, itemSO is ConsumableItemSO consumableItemSO ? consumableItemSO.shelfLifeInSeconds : 0f);
+		itemDrop.item = new Item(itemSO.uniqueID, itemSO is ConsumableItemSO consumableItemSO ? consumableItemSO.shelfLifeInSeconds : 0f);
 		itemDrop.amount = amount;
 		NetworkServer.Spawn(gO);
 		_spawned = gO;

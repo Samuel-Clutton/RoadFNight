@@ -5,6 +5,7 @@ using UnityEngine.InputSystem;
 using Mirror;
 using RedicionStudio.UIUtils;
 using StarterAssets;
+using UnityEngine.Serialization;
 
 namespace RedicionStudio.InventorySystem {
 
@@ -39,8 +40,8 @@ namespace RedicionStudio.InventorySystem {
 		[Space]
 		public AudioSource audioSource;
 
-        [Space]
-        public ManageTPController TPControllerManager;
+        [FormerlySerializedAs("TPControllerManager")] [Space]
+        public ManageTPController tpControllerManager;
 
         [Space]
         public GameObject bulletPrefab;
@@ -67,8 +68,7 @@ namespace RedicionStudio.InventorySystem {
         [Space]
         public bool isAiming = false;
 
-        private bool isWeaponWheelActive = false;
-        RectTransform rectTransform;
+        private bool _isWeaponWheelActive = false;
 
 
 
@@ -88,20 +88,31 @@ namespace RedicionStudio.InventorySystem {
         [Space]
         [SerializeField] private Transform _gFX;
 
+        #region Cashed Requirements
+		
+        // private cashes
+        private readonly Dictionary<string, int> _cooldownTagHashes = new Dictionary<string, int>();
+        private Dictionary<int, double> _localItemCooldowns = new Dictionary<int, double>();
+        
+        private readonly SyncDictionaryIntDouble _itemCooldowns = new SyncDictionaryIntDouble();
+        
+        // public cashes
 
+        
+        #endregion
         
         private void Start() {
 	        if (isLocalPlayer) {
 		        Initialisation();
 		        
-		        UIPlayerInventory.playerInventory = this;
-		        slots.Callback += Slots_Callback;
+		        UIPlayerInventory.PlayerInventory = this;
+		        Slots.Callback += Slots_Callback;
 		        UIPlayerInventory.InstanceRefresh();
 
 		        UIDragAndDrop.OnDragAndClearAction = CmdDropItem;
 		        UIDragAndDrop.OnDragAndDropAction = (from, to) => {
-			        if (slots[from].amount > 0 && slots[to].amount > 0 &&
-			            slots[from].item.Equals(slots[to].item)) {
+			        if (Slots[from].amount > 0 && Slots[to].amount > 0 &&
+			            Slots[from].item.Equals(Slots[to].item)) {
 				        CmdInventoryMerge(from, to);
 			        }
 			        else if (_keyboard != null && _keyboard.shiftKey.isPressed) {
@@ -143,7 +154,7 @@ namespace RedicionStudio.InventorySystem {
         }
 
         
-        	/// <summary>
+        /// <summary>
 		/// Update is a mess, lots of logic in here can be both improved and split off into other methods to control readability
 		/// and allow for more dynamic control over it in the future. Split this up in phase 2 or 3
 		/// </summary>
@@ -153,9 +164,10 @@ namespace RedicionStudio.InventorySystem {
 	            return;
             
             ShelfLifeCalculation();
-
-            if (inShop) return;
             ShopUIToggle();
+            
+            
+            if (inShop) return;
             WeaponWheelUIToggle();
             EmoteWheelUIToggle();
             AimWeapon();
@@ -175,10 +187,10 @@ namespace RedicionStudio.InventorySystem {
 		        _gFX.GetChild(i).gameObject.SetActive(false);
 		        _gFX.GetChild(i).GetComponent<WeaponManager>().enabled = false;
 	        }
-	        if (!this.GetComponent<Health>().isDeath && !inCar && !usesParachute && !this.GetComponent<EmoteWheel>().isPlayingAnimation && slots[0].amount > 0 && slots[0].item.itemSO != null) {
+	        if (!this.GetComponent<Health>().isDeath && !inCar && !usesParachute && !this.GetComponent<EmoteWheel>().isPlayingAnimation && Slots[0].amount > 0 && Slots[0].item.itemSO != null) {
 		        this.GetComponent<Animator>().SetLayerWeight(1, 1);
 		        for (int i = 0; i < _gFX.childCount; i++) {
-			        if (_gFX.GetChild(i).name == slots[0].item.itemSO.uniqueName) {
+			        if (_gFX.GetChild(i).name == Slots[0].item.itemSO.uniqueID) {
 				        _gFX.GetChild(i).gameObject.SetActive(true);
 				        _gFX.GetChild(i).GetComponent<WeaponManager>().enabled = true;
 				        this.GetComponent<ManageTPController>().CurrentWeaponManager = _gFX.GetChild(i).GetComponent<WeaponManager>();
@@ -202,8 +214,8 @@ namespace RedicionStudio.InventorySystem {
         {
 	        if (!isServer || !(NetworkTime.time >= _lastTime + _interval)) return; // if not server or cooldown still going return
 	        
-	        for (_index = 0; _index < slots.Count; _index++) {
-		        _slot = slots[_index];
+	        for (_index = 0; _index < Slots.Count; _index++) {
+		        _slot = Slots[_index];
 		        if (_slot.amount <= 0 || _slot.item.itemSO == null ||
 		            _slot.item.itemSO is not ConsumableItemSO) continue;
 		        if (_slot.item.currentShelfLifeInSeconds > 0f) {
@@ -213,7 +225,7 @@ namespace RedicionStudio.InventorySystem {
 			        _slot.item = new Item();
 			        _slot.amount = 0;
 		        }
-		        slots[_index] = _slot;
+		        Slots[_index] = _slot;
 	        }
 	        _lastTime = NetworkTime.time;
         }
@@ -272,7 +284,11 @@ namespace RedicionStudio.InventorySystem {
         
         #endregion
         
-      
+        #region Weapon UI
+
+        
+
+        
         public void WeaponWheelUIToggle()
         {
 	        if (!_inputs.weaponWheel)
@@ -280,23 +296,23 @@ namespace RedicionStudio.InventorySystem {
 		        DeactivateWeaponWheel();
 		        return;
 	        }
-	        if (!isWeaponWheelActive)
+	        if (!_isWeaponWheelActive)
 	        {
 		        ToggleWeaponWheel();
 	        }
 
-	        if (isWeaponWheelActive)
+	        if (_isWeaponWheelActive)
 	        {
 		        UpdateWeaponWheel();
 	        }
 
-	        _slot = slots[0];  
+	        _slot = Slots[0];  
         }
 
         private void ToggleWeaponWheel()
         {
 	        inWeaponWheel = !inWeaponWheel;
-	        isWeaponWheelActive = !isWeaponWheelActive;
+	        _isWeaponWheelActive = !_isWeaponWheelActive;
 	        
 	        if(inWeaponWheel)  EnterWeaponWheel();
 	        else ExitWeaponWheel();
@@ -315,18 +331,18 @@ namespace RedicionStudio.InventorySystem {
 
         private void RegisterWeapon()
         {
-	        foreach (ItemSlot slot in slots)
+	        foreach (ItemSlot slot in Slots)
 	        {
 		        if (!slot.item.itemSO) continue; // if null continue
 
 		        bool alreadyRegistered =
-			        _weaponWheelSystem.weapons.Any(item => item.WeaponName == slot.item.itemSO.uniqueName);
+			        _weaponWheelSystem.weapons.Any(item => item.WeaponName == slot.item.itemSO.uniqueID);
 
 		        if (!alreadyRegistered)
 		        {
 			        WeaponWheelItem weaponItem = new WeaponWheelItem
 			        {
-				        WeaponName = slot.item.itemSO.uniqueName,
+				        WeaponName = slot.item.itemSO.uniqueID,
 				        InfoText = slot.item.itemSO.tooltipText,
 				        type = slot.item.itemSO.weaponType
 			        };
@@ -345,7 +361,7 @@ namespace RedicionStudio.InventorySystem {
         {
 	        UIPlayerInventory.WeaponWheel.SetActive(false);
 	        TPController.TPCameraController.LockCursor(true);
-	        isWeaponWheelActive = false;
+	        _isWeaponWheelActive = false;
         }
 
         private void UpdateWeaponWheel()
@@ -367,32 +383,142 @@ namespace RedicionStudio.InventorySystem {
 		        Cursor.visible = false;
 	        }
 
-	        isWeaponWheelActive = false;
+	        _isWeaponWheelActive = false;
 	        inWeaponWheel = false;
         }
         
+        #endregion
+
+        private bool EmoteWheelConditionsCheck()
+        {
+	        return !BSystem.BSystem.inMenu && 
+	               !inWeaponWheel && 
+	               !_emoteWheel.inEmoteWheel &&
+	               !inPropertyArea && 
+	               !inShop && 
+	               !inCar && 
+	               !usesParachute &&
+	               !_emoteWheel.isPlayingAnimation &&
+	               isAiming && 
+	               !_health.isDeath &&
+	               _inputs.shoot &&
+	               _slot.amount > 0 &&
+	               _slot.item.itemSO &&
+	               _slot.item.itemSO is WeaponItemSO weaponItemSo;
+        }
         
         /// <summary>
         /// Toggles the emote wheel. This looks a mess. And must have a massive amount of other ways to do this
         /// </summary>
         public void EmoteWheelUIToggle()
         {
-	        if (!BSystem.BSystem.inMenu && !inWeaponWheel && !GetComponent<EmoteWheel>().inEmoteWheel && 
-	            !inPropertyArea && !inShop && !inCar && !usesParachute && !this.GetComponent<EmoteWheel>().isPlayingAnimation && 
-	            isAiming && !this.GetComponent<Health>().isDeath && _inputs.shoot && _slot.amount > 0 && _slot.item.itemSO != null && _slot.item.itemSO is WeaponItemSO weaponItemSO) {
-		        _interval = weaponItemSO.cooldownInSeconds;
-		        if (NetworkTime.time >= _lastTime + _interval) {
-			        if (weaponItemSO.automatic) {
-				        CmdUseItem(0);
-			        }
-			        else if (_mouse.leftButton.wasPressedThisFrame || Gamepad.current.rightTrigger.wasPressedThisFrame) {
-				        CmdUseItem(0);
-			        }
-			        _lastTime = NetworkTime.time;
-		        }
+	        var weaponItemSo = _slot.item.itemSO as WeaponItemSO;
+
+	        if (!EmoteWheelConditionsCheck() || !weaponItemSo) return; // check required conditions or if weapon item is null to continue
+	        
+	        _interval = weaponItemSo.cooldownInSeconds;
+
+	        if (!(NetworkTime.time >= _lastTime + _interval)) return; // if enough time hasn't passed yet then return
+	        
+	        if (weaponItemSo.automatic)
+	        {
+		        CmdUseItem(0);
+	        }
+	        else if (_mouse.leftButton.wasPressedThisFrame || Gamepad.current.rightTrigger.wasPressedThisFrame)
+	        {
+		        CmdUseItem(0);
+	        }
+
+	        _lastTime = NetworkTime.time;
+        }
+
+        /// <summary>
+        /// Parses the index of the item used. This will then check if it can be used and will reduce the stack and
+        /// call use item starting the cooldown. Pushing this to the server
+        /// </summary>
+        /// <param name="slotIndex"></param>
+        [Command]
+        public void CmdUseItem(int slotIndex) {
+	        if (0 <= slotIndex && slotIndex < Slots.Count && Slots[slotIndex].amount > 0 && Slots[slotIndex].item.itemSO is UseableItemSO usableItemSO && usableItemSO.CanBeUsed(this, slotIndex)) {
+		        usableItemSO.Use(this, slotIndex);
 	        }
         }
 
+        public int GetCooldownTagHash(string cooldownTag)
+        {
+	        if (!_cooldownTagHashes.TryGetValue(cooldownTag, out var hash))
+	        {
+		        hash = cooldownTag.GetStableHashCode();
+		        _cooldownTagHashes[cooldownTag] = hash;
+	        }
+
+	        return hash;
+        }
+        
+        public int GenerateUniqueKey(string uniqueID, string cooldownTag)
+        {
+	        return (uniqueID + cooldownTag).GetStableHashCode();
+        }
+        
+        /// <summary>
+        /// Sets the cooldown for an item. The cooldown is tracked separately for the client and server.
+        /// If executed on the client, the cooldown is stored in the local item cooldowns dictionary.
+        /// If executed on the server, the cooldown is stored in the server item cooldowns dictionary.
+        /// </summary>
+        /// <param name="itemSOHash">ID of item for cooldown</param>
+        /// <param name="cooldownInSeconds">Time of cooldown</param>
+        public void SetCooldown(string uniqueID, string cooldownTag, float cooldownInSeconds)
+        {
+	        double cooldownEndTime = NetworkTime.time + cooldownInSeconds;
+	        int compositeKey = GenerateUniqueKey(uniqueID, cooldownTag);
+
+	        if (isClient && !isServer)
+	        {
+		        _localItemCooldowns[compositeKey] = cooldownEndTime;
+	        }
+	        else
+	        {
+		        if (_itemCooldowns.ContainsKey(compositeKey))
+		        {
+			        _itemCooldowns[compositeKey] = cooldownEndTime; // Use indexer to update existing entry
+		        }
+		        else
+		        {
+			        _itemCooldowns.Add(compositeKey, cooldownEndTime); // Use Add method to add new entry
+		        }
+	        }
+        }
+		
+        /// <summary>
+        /// Retrieves the remaining cooldown time for a specific item.
+        /// This method checks both the local client and the server for the cooldown end time of the item
+        /// identified by its unique hash. If the current time exceeds the cooldown end time, it returns 0,
+        /// indicating no cooldown. Otherwise, it returns the remaining cooldown time in seconds.
+        /// </summary>
+        /// <param name="itemSOHash">ID of item</param>
+        /// <returns>returns the remaining cooldown, if there is non returns 0</returns>
+        public float GetCooldown(string uniqueID, string cooldownTag)
+        {
+	        double cooldownEndTime;
+	        int compositeKey = GenerateUniqueKey(uniqueID, cooldownTag);
+
+	        if (isClient && !isServer)
+	        {
+		        if (_localItemCooldowns.TryGetValue(compositeKey, out cooldownEndTime))
+		        {
+			        return NetworkTime.time >= cooldownEndTime ? 0f : (float)(cooldownEndTime - NetworkTime.time);
+		        }
+	        }
+
+	        if (_itemCooldowns.TryGetValue(compositeKey, out cooldownEndTime))
+	        {
+		        return NetworkTime.time >= cooldownEndTime ? 0f : (float)(cooldownEndTime - NetworkTime.time);
+	        }
+
+	        return 0f;
+        }
+
+        
         public void AimWeapon()
         {
 	        //Aim
@@ -411,7 +537,7 @@ namespace RedicionStudio.InventorySystem {
         /// </summary>
         public void LoadInventory() {
 			for (int i = 0; i < 67; i++) {
-				slots.Add(new ItemSlot());
+				Slots.Add(new ItemSlot());
 			}
 
 #if UNITY_SERVER || UNITY_EDITOR // ?
@@ -426,7 +552,7 @@ namespace RedicionStudio.InventorySystem {
 					slot.item.hash = inventoryData[i].hash;
 					slot.amount = inventoryData[i].amount;
 					slot.item.currentShelfLifeInSeconds = inventoryData[i].shelfLife;
-					slots[i] = slot;
+					Slots[i] = slot;
 				}
 			});
 #endif
@@ -442,17 +568,17 @@ namespace RedicionStudio.InventorySystem {
         /// <param name="to">The index of the slot to move items to</param>
 		[Command]
 		private void CmdInventoryMerge(int from, int to) {
-			if (0 <= from && from < slots.Count &&
-				0 <= to && to < slots.Count &&
+			if (0 <= from && from < Slots.Count &&
+				0 <= to && to < Slots.Count &&
 				from != to) {
-				ItemSlot fromSlot = slots[from];
-				ItemSlot toSlot = slots[to];
+				ItemSlot fromSlot = Slots[from];
+				ItemSlot toSlot = Slots[to];
 				if (fromSlot.amount > 0 && toSlot.amount > 0) {
 					if (fromSlot.item.Equals(toSlot.item)) {
 						int put = toSlot.IncreaseBy(fromSlot.amount);
 						fromSlot.DecreaseBy(put);
-						slots[from] = fromSlot;
-						slots[to] = toSlot;
+						Slots[from] = fromSlot;
+						Slots[to] = toSlot;
 					}
 				}
 			}
@@ -466,19 +592,19 @@ namespace RedicionStudio.InventorySystem {
         /// <param name="to">The index of the slot to move items to</param>
 		[Command]
 		private void CmdInventorySplit(int from, int to) {
-			if (0 <= from && from < slots.Count &&
-				0 <= to && to < slots.Count &&
+			if (0 <= from && from < Slots.Count &&
+				0 <= to && to < Slots.Count &&
 				from != to) {
-				ItemSlot fromSlot = slots[from];
-				ItemSlot toSlot = slots[to];
+				ItemSlot fromSlot = Slots[from];
+				ItemSlot toSlot = Slots[to];
 				if (fromSlot.amount >= 2 && toSlot.amount == 0) {
 					toSlot = fromSlot;
 
 					toSlot.amount = fromSlot.amount / 2;
 					fromSlot.amount -= toSlot.amount;
 
-					slots[from] = fromSlot;
-					slots[to] = toSlot;
+					Slots[from] = fromSlot;
+					Slots[to] = toSlot;
 				}
 			}
 		}
@@ -490,10 +616,10 @@ namespace RedicionStudio.InventorySystem {
         /// <param name="to">Empty slot or taken slot if different item (not stackable) </param>
 		[Command]
 		private void CmdSwapInventoryInventory(int from, int to) {
-			if (0 <= from && from < slots.Count &&
-				0 <= to && to < slots.Count &&
+			if (0 <= from && from < Slots.Count &&
+				0 <= to && to < Slots.Count &&
 				from != to) {
-				ItemSlot fromSlot = slots[from];
+				ItemSlot fromSlot = Slots[from];
 				
 				// Ensure the item is compatible with the targeted slot
 				if ((to == 0 && !(fromSlot.item.itemSO is WeaponItemSO)) ||
@@ -504,8 +630,8 @@ namespace RedicionStudio.InventorySystem {
 				}
 				
 				//swap the items between the two slots
-				slots[from] = slots[to];
-				slots[to] = fromSlot;
+				Slots[from] = Slots[to];
+				Slots[to] = fromSlot;
 			}
 		}
 
@@ -544,10 +670,10 @@ namespace RedicionStudio.InventorySystem {
 		/// calls the drop item method and updates the slot to be emptied
 		/// </summary>
 		private void DropItemAndClearSlot(int slotIndex, bool remove) {
-			ItemSlot slot = slots[slotIndex];
+			ItemSlot slot = Slots[slotIndex];
 			DropItem(slot.item, slot.amount, remove);
 			slot.amount = 0;
-			slots[slotIndex] = slot;
+			Slots[slotIndex] = slot;
 		}
 
 		
@@ -562,7 +688,7 @@ namespace RedicionStudio.InventorySystem {
 		public void CmdDropItem(int index) {
             if(index > 3) // Ensures that no item can be dropped as long as it is equipped.
             {
-                if (0 <= index && index < slots.Count && slots[index].amount > 0){
+                if (0 <= index && index < Slots.Count && Slots[index].amount > 0){
                     DropItemAndClearSlot(index, false);
                 }
             }
@@ -579,61 +705,13 @@ namespace RedicionStudio.InventorySystem {
         {
             if (index > 3) // Ensures that no item can be dropped as long as it is equipped.
             {
-                if (0 <= index && index < slots.Count && slots[index].amount > 0)
+                if (0 <= index && index < Slots.Count && Slots[index].amount > 0)
                 {
                     DropItemAndClearSlot(index, remove);
                 }
             }
         }
 
-        #region Cooldowns
-
-        private Dictionary<int, double> _local_itemCooldowns = new Dictionary<int, double>();
-		private readonly SyncDictionaryIntDouble _itemCooldowns = new SyncDictionaryIntDouble();
-
-		/// <summary>
-		/// Sets the cooldown for an item. The cooldown is tracked separately for the client and server.
-		/// If executed on the client, the cooldown is stored in the local item cooldowns dictionary.
-		/// If executed on the server, the cooldown is stored in the server item cooldowns dictionary.
-		/// </summary>
-		/// <param name="itemSOHash">ID of item for cooldown</param>
-		/// <param name="cooldownInSeconds">Time of cooldown</param>
-		public void SetCooldown(int itemSOHash, float cooldownInSeconds) {
-			double cooldownEndTime = NetworkTime.time + cooldownInSeconds;
-
-			if (isClient && !isServer) {
-				_local_itemCooldowns[itemSOHash] = cooldownEndTime;
-			}
-			else {
-				_itemCooldowns[itemSOHash] = cooldownEndTime;
-			}
-		}
-		
-		/// <summary>
-		/// Retrieves the remaining cooldown time for a specific item.
-		/// This method checks both the local client and the server for the cooldown end time of the item
-		/// identified by its unique hash. If the current time exceeds the cooldown end time, it returns 0,
-		/// indicating no cooldown. Otherwise, it returns the remaining cooldown time in seconds.
-		/// </summary>
-		/// <param name="itemSOHash">ID of item</param>
-		/// <returns>returns the remaining cooldown, if there is non returns 0</returns>
-		public float GetCooldown(int itemSOHash) {
-			double cooldownEndTime;
-
-			if (isClient && !isServer) {
-				if (_local_itemCooldowns.TryGetValue(itemSOHash, out cooldownEndTime)) {
-					return NetworkTime.time >= cooldownEndTime ? 0f : (float)(cooldownEndTime - NetworkTime.time);
-				}
-			}
-
-			if (_itemCooldowns.TryGetValue(itemSOHash, out cooldownEndTime)) {
-				return NetworkTime.time >= cooldownEndTime ? 0f : (float)(cooldownEndTime - NetworkTime.time);
-			}
-
-			return 0f;
-		}
-
-		#endregion
 
 		/// <summary>
 		/// Checks if the item attempted to be used is usable,
@@ -647,18 +725,7 @@ namespace RedicionStudio.InventorySystem {
 			}
 		}
 
-		/// <summary>
-		/// Parses the index of the item used. This will then check if it can be used and will reduce the stack and
-		/// call use item starting the cooldown. Pushing this to the server
-		/// </summary>
-		/// <param name="slotIndex"></param>
-		[Command]
-		public void CmdUseItem(int slotIndex) {
-			if (0 <= slotIndex && slotIndex < slots.Count && slots[slotIndex].amount > 0 && slots[slotIndex].item.itemSO is UseableItemSO usableItemSO && usableItemSO.CanBeUsed(this, slotIndex)) {
-				usableItemSO.Use(this, slotIndex);
-			}
-		}
-
+		
 		/// <summary>
 		/// This will push to the server that the player is aiming to the TP controller setting the aim value to 1
 		/// this likely is working in parallel to setting the animator values for the server?
@@ -666,7 +733,7 @@ namespace RedicionStudio.InventorySystem {
         [Command]
         public void CmdAim()
         {
-            TPControllerManager.aimValue = 1;
+            tpControllerManager.aimValue = 1;
         }
 
 		/// <summary>
@@ -677,7 +744,7 @@ namespace RedicionStudio.InventorySystem {
 		///
 		/// These need changing need to look for swap weapon, then call the change of current weapon bullet spawn to be only called on weapon change and awake (if has a weapon)
 		/// or maybe add a debounce to have a more simple approach.
-		/// Switch statement to replace the if statement so we can include different bullet types such as 9mm etc.
+		/// Switch statement to replace the if statement, so we can include different bullet types such as 9mm etc.
 		/// </summary>
         public void ShootBullet()
         {
@@ -837,8 +904,8 @@ namespace RedicionStudio.InventorySystem {
         /// </summary>
         private void OnDestroy() {
 			if (isLocalPlayer) {
-				UIPlayerInventory.playerInventory = null;
-				slots.Callback -= Slots_Callback;
+				UIPlayerInventory.PlayerInventory = null;
+				Slots.Callback -= Slots_Callback;
 			}
 		}
 	}

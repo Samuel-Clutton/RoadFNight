@@ -19,9 +19,9 @@ namespace RedicionStudio.InventorySystem {
 		}
 
 		public override void Use(PlayerInventoryModule playerInventory, int slotIndex) {
-			ItemSlot slot = playerInventory.slots[slotIndex];
+			ItemSlot slot = playerInventory.Slots[slotIndex];
 			_ = slot.DecreaseBy(1);
-			playerInventory.slots[slotIndex] = slot;
+			playerInventory.Slots[slotIndex] = slot;
 
 			ApplyEffects(playerInventory.playerNutrition);
 

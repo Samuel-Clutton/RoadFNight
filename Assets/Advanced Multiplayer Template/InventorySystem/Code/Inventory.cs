@@ -55,8 +55,9 @@ namespace RedicionStudio.InventorySystem {
 
 	
 	[System.Serializable]
-	public struct ItemSlot {
-
+	public struct ItemSlot 
+	{
+		
 		public Item item;
 		public int amount;
 
@@ -76,9 +77,12 @@ namespace RedicionStudio.InventorySystem {
 	}
 
 	public class SyncListItemSlot : SyncList<ItemSlot> { }
+	
 
 	public abstract class Inventory : ItemContainer {
-
+		
+		public readonly SyncList<ItemSlot> Slots = new SyncList<ItemSlot>();
+		
 		public bool PossibleToAdd(Item item, int amount) {
 			for (int i = 4; i < slots.Count; i++) {
 				if (slots[i].amount == 0) {
@@ -97,36 +101,53 @@ namespace RedicionStudio.InventorySystem {
 		}
 
 		public bool Add(Item item, int amount) {
-			if (!PossibleToAdd(item, amount)) {
+			Debug.Log($"Attempting to add item {item.itemSO.name} with amount {amount} to inventory");
+
+			if (!PossibleToAdd(item, amount))
+			{
+				Debug.Log($"Add: Not possible to add the {item.itemSO.name} item to the inventory");
 				return false;
 			}
 
 			int i;
 
-			for (i = 4; i < slots.Count; i++) {
-				if (slots[i].amount > 0 && slots[i].item.Equals(item)) { // ?
+			// Try to stack the item in existing slots
+			for (i = 4; i < slots.Count; i++)
+			{
+				Debug.Log($"Checking slot {i} with item {slots[i].item.itemSO.name ?? "empty"} and amount {slots[i].amount}");
+				if (slots[i].amount > 0 && slots[i].item.Equals(item))
+				{
 					ItemSlot tempSlot = slots[i];
 					amount -= tempSlot.IncreaseBy(amount);
 					slots[i] = tempSlot;
+					Debug.Log($"Added to existing slot {i}, remaining amount: {amount}");
 				}
 
-				if (amount <= 0) {
+				if (amount <= 0)
+				{
 					return true;
 				}
 			}
 
-			for (i = 4; i < slots.Count; i++) {
-				if (slots[i].amount == 0) {
+			// Try to add the item to empty slots
+			for (i = 4; i < slots.Count; i++)
+			{
+				Debug.Log($"Checking empty slot {i}");
+				if (slots[i].amount == 0)
+				{
 					int tempValue = Mathf.Min(amount, item.itemSO.stackSize);
 					slots[i] = new ItemSlot { item = item, amount = tempValue };
 					amount -= tempValue;
+					Debug.Log($"Added to empty slot {i}, remaining amount: {amount}");
 				}
 
-				if (amount <= 0) {
+				if (amount <= 0)
+				{
 					return true;
 				}
 			}
 
+			Debug.Log("Add: Unable to add the item, not enough space");
 			return false;
 		}
 
