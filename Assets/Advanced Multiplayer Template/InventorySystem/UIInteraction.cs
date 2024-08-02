@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
 using TMPro;
 
 public class UIInteraction : MonoBehaviour {
@@ -8,8 +9,15 @@ public class UIInteraction : MonoBehaviour {
 
 	public static PlayerInteractionModule playerInteraction;
 
+	private PlayerInventoryModule _pIm;
+
+	private void Start()
+	{
+		_pIm = FindObjectOfType<PlayerInventoryModule>();
+	}
+
 	private void Update() {
-		if (playerInteraction == null || playerInteraction.currentInteractable == null || RedicionStudio.InventorySystem.PlayerInventoryModule.inMenu) {
+		if (playerInteraction == null || playerInteraction.currentInteractable == null || _pIm.inMenu) {
 			_content.SetActive(false);
 			return;
 		}

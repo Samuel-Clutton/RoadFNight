@@ -17,9 +17,9 @@ public class UIItemSale : MonoBehaviour, IPointerClickHandler
 
     public void SellItem()
     {
-        RedicionStudio.InventorySystem.UISlot uiSlot;
-        uiSlot = GetComponent<RedicionStudio.InventorySystem.UISlot>();
+        UISlot uiSlot;
+        uiSlot = GetComponent<UISlot>();
 
-        uiSlot.playerInteractionModule.RemoveItem(uiSlot.playerInteractionModule.GetComponent<RedicionStudio.InventorySystem.PlayerInventoryModule>(), uiSlot.sellPrice, uiSlot.item, 1, uiSlot.itemSlotIndex);
+        uiSlot.playerInteractionModule.RemoveItem(uiSlot.playerInteractionModule.GetComponent<PlayerInventoryModule>(), uiSlot.sellPrice, uiSlot.item, 1, uiSlot.itemSlotIndex);
     }
 }
