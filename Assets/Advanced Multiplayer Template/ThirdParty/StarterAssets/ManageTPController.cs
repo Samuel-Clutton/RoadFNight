@@ -183,7 +183,7 @@ public class ManageTPController : NetworkBehaviour
                 Vector3 worldAimTarget = mouseWorldPosition;
                 worldAimTarget.y = CurrentWeaponManager.Player.position.y;
                 Vector3 aimDirection = (worldAimTarget - CurrentWeaponManager.Player.position).normalized;
-
+                
                 if (_input.aim)// Manages the aiming of the character, however uses some very expensive calls within here, get components are even running in else
                 {
                     if (aimValue == 1)

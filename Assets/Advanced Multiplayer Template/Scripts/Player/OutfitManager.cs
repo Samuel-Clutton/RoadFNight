@@ -10,14 +10,14 @@ public class OutfitManager : NetworkBehaviour
     [SyncVar] public string currentOutfitName = "defaultOutfit";
     public Sprite defaultInventoryCharacterSprite;
 
-    public RedicionStudio.InventorySystem.PlayerInventoryModule inventoryModule;
+    public PlayerInventoryModule inventoryModule;
 
-    RedicionStudio.InventorySystem.UIPlayerInventory uiPlayerInventory;
+    UIPlayerInventory uiPlayerInventory;
 
     private void Update()
     {
         if (uiPlayerInventory == null)
-            uiPlayerInventory = GameObject.Find("UIPlayerInventory").GetComponent<RedicionStudio.InventorySystem.UIPlayerInventory>();
+            uiPlayerInventory = GameObject.Find("UIPlayerInventory").GetComponent<UIPlayerInventory>();
 
         if (currentOutfitName != "defaultOutfit")
         {
@@ -48,7 +48,7 @@ public class OutfitManager : NetworkBehaviour
             return;
         }
 
-        if (GetComponent<RedicionStudio.InventorySystem.PlayerInventoryModule>().slots[2].item.itemSO != null) // expensive but we need to fire an event to update this when we change the slot to change to null or active
+        if (GetComponent<PlayerInventoryModule>().slots[2].item.itemSO != null) // expensive but we need to fire an event to update this when we change the slot to change to null or active
         {
             if (inventoryModule.slots[2].item.itemSO is RedicionStudio.InventorySystem.OutfitItemSO)
             {
@@ -96,7 +96,7 @@ public class OutfitItem
     [Tooltip("The name of the outfit must match the unique name of the outfitSO")]
     public string name = "defaultOutfit";
     [Space]
-    public RedicionStudio.InventorySystem.ItemSO itemSO;
+    public ItemSO itemSO;
     public GameObject outfitGameObject;
     [Tooltip("The image of the character displayed in the inventory.")]
     public Sprite inventoryCharacterSprite;

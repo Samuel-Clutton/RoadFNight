@@ -32,5 +32,5 @@ public class WeaponWheelItem
     public string WeaponName;
     [TextArea]
     public string InfoText;
-    public RedicionStudio.InventorySystem.ItemSO.WeaponType type;
+    public ItemSO.WeaponType type;
 }

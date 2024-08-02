@@ -15,7 +15,7 @@ public class Player : NetworkBehaviour {
 	#endregion
 	
 	[Header("Player Modules")]
-	public RedicionStudio.InventorySystem.PlayerInventoryModule playerInventory;
+	public PlayerInventoryModule playerInventory;
 	public PlayerNutritionModule playerNutrition;
 
 	[Space]
@@ -26,6 +26,10 @@ public class Player : NetworkBehaviour {
     [SyncVar] public int experiencePoints;
     [HideInInspector] public Instance instance;
     [HideInInspector] public PropertyArea propertyArea;
+    
+    [Space]
+    public AudioSource audioSource;
+
     
 	public readonly Dictionary<int, Player> onlinePlayers = new Dictionary<int, Player>();
 
@@ -123,7 +127,7 @@ public class Player : NetworkBehaviour {
     {
 	    if (GetComponent<PlayerAI>().isSetAsAi == true)
 	    {
-		    GetComponent<RedicionStudio.InventorySystem.PlayerInventoryModule>().enabled = false;
+		    GetComponent<PlayerInventoryModule>().enabled = false;
 		    return;
 	    }
 	    onlinePlayers[id] = this;

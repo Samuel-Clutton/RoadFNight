@@ -48,16 +48,12 @@ public class UIServerList : MonoBehaviour {
 			_headerText.text = "Global Server List <color=#aaa>(Debug UI)</color>                                <color=#aaa>Server Count:</color> " + MSClient.last_instances.Length;
 
 			_uICategory.ClearOptions();
-			for (int i = 0; i < MSClient.last_instances.Length; i++) {
-				_uICategory.AddOption(MSClient.last_instances[i]);
-			}
 		};
 
 		_createServerButton.onPressed = () => {
 			UICreateServer.instance.Show((serverName) => {
 				CustomNetAuthenticator.local_instanceName = serverName;
 				_serverNameText.text = "<color=#aaa>Server:</color> " + serverName;
-				_uICategory.SelectOption(null);
 			});
 		};
 
@@ -69,7 +65,6 @@ public class UIServerList : MonoBehaviour {
                     // Server with less than 16 players found
                     CustomNetAuthenticator.local_instanceName = MSClient.last_instances[i].uniqueName;
                     _serverNameText.text = "<color=#aaa>Server:</color> " + MSClient.last_instances[i].uniqueName;
-                    _uICategory.SelectOption(null);
                     MSManager.SendPacket(new GetConnectionInfoPacket { InstanceUniqueName = CustomNetAuthenticator.local_instanceName }); // Enter server
                     isServerFound = true;
                 }
@@ -100,7 +95,6 @@ public class UIServerList : MonoBehaviour {
 
                 CustomNetAuthenticator.local_instanceName = _serverName;
                 _serverNameText.text = "<color=#aaa>Server:</color> " + _serverName;
-                _uICategory.SelectOption(null);
 
                 StartCoroutine(EnterServerProcedure());
 

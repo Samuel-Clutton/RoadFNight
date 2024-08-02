@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using UnityEngine;
 using Mirror;
 using StarterAssets;
-
 public class EmoteWheel : NetworkBehaviour
 {
     [Header("Ui")]
@@ -29,21 +28,25 @@ public class EmoteWheel : NetworkBehaviour
     public bool Left;
 
     private StarterAssets.StarterAssetsInputs _input;
-
+    private PlayerInventoryModule _pIm;
+    
     private void Start()
     {
+        _pIm = GetComponent<PlayerInventoryModule>();
         foreach(EmoteWheelItem emoteItem in emotes)
         {
             emoteItem.Load();
+            
+            
         }
     }
 
     private bool CheckActions()
     {
-        return !RedicionStudio.InventorySystem.PlayerInventoryModule.inMenu &&
-               !GetComponent<RedicionStudio.InventorySystem.PlayerInventoryModule>().inShop &&
-               !RedicionStudio.InventorySystem.PlayerInventoryModule.inWeaponWheel &&
-               !GetComponent<RedicionStudio.InventorySystem.PlayerInventoryModule>().chatWindow.isChatOpen;
+        return !_pIm.inMenu &&
+               !_pIm.inShop &&
+               !_pIm.inWeaponWheel &&
+               !_pIm.chatWindow.isChatOpen;
     }
     private void Update()
     {
@@ -55,7 +58,9 @@ public class EmoteWheel : NetworkBehaviour
         if (_input == null)
             _input = GameObject.FindGameObjectWithTag("InputManager").GetComponent<StarterAssets.StarterAssetsInputs>();
 
-        if (_input != null && _input.emoteWheel && !BSystemUI.Instance.Active && !RedicionStudio.InventorySystem.PlayerInventoryModule.inMenu && !GetComponent<RedicionStudio.InventorySystem.PlayerInventoryModule>().inShop && GetComponent<Health>().isDeath == false && !GetComponent<RedicionStudio.InventorySystem.PlayerInventoryModule>().inCar && !GetComponent<RedicionStudio.InventorySystem.PlayerInventoryModule>().usesParachute && !GetComponent<RedicionStudio.InventorySystem.PlayerInventoryModule>().isAiming && !RedicionStudio.InventorySystem.PlayerInventoryModule.inWeaponWheel && !GetComponent<RedicionStudio.InventorySystem.PlayerInventoryModule>().chatWindow.isChatOpen)
+        if (_input != null && _input.emoteWheel  && !_pIm.inMenu && !GetComponent<PlayerInventoryModule>().inShop && GetComponent<Health>().isDeath == false 
+            && !GetComponent<PlayerInventoryModule>().inCar && !GetComponent<PlayerInventoryModule>().usesParachute && !GetComponent<PlayerInventoryModule>().isAiming && 
+            !_pIm.inWeaponWheel && !GetComponent<PlayerInventoryModule>().chatWindow.isChatOpen)
         {
             if (!isEmoteWheelActive)
             {
@@ -63,12 +68,7 @@ public class EmoteWheel : NetworkBehaviour
                 if (inEmoteWheel)
                 {
                     isEmoteWheelActive = true;
-                    if (BSystem.BSystem.inMenu)
-                    {
-                        BSystem.BSystem.inMenu = false;
-                        BSystemUI.Instance.SetActive(false);
-
-                    }
+                    
                     EmoteWheelUi.SetActive(true);
                     TPController.TPCameraController.LockCursor(false);
                 }

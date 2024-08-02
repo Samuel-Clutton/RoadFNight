@@ -11,9 +11,18 @@ namespace TPController {
 		private static CinemachineFreeLook _cinemachineFreeLook;
 
         private GameObject _localPlayer;
+        private PlayerInventoryModule _pIm;
+        
+        
+		[SerializeField] private float _mouseSensitivity = 0.9f;
 
-		[SerializeField] private float _mouseSensitivity = .9f;
+		private void Awake()
+		{
+			_cinemachineFreeLook = GetComponent<CinemachineFreeLook>();
+			_pIm = GetComponent<PlayerInventoryModule>();
+		}
 
+		
 		public static void LockCursor(bool value) {
 			if (value) {
 				Cursor.lockState = CursorLockMode.Locked;
@@ -29,9 +38,6 @@ namespace TPController {
 			_cinemachineFreeLook.m_XAxis.Value = 0f;
 		}
 
-		private void Awake() {
-			_cinemachineFreeLook = GetComponent<CinemachineFreeLook>();
-        }
 
 		private static Mouse _mouse;
 
@@ -41,7 +47,7 @@ namespace TPController {
             if(_localPlayer == null)
                 _localPlayer = NetworkClient.localPlayer.gameObject;
 
-            if (_mouse == null || _cinemachineFreeLook.LookAt == null || BSystemUI.Instance.Active || RedicionStudio.InventorySystem.PlayerInventoryModule.inMenu || RedicionStudio.InventorySystem.PlayerInventoryModule.inWeaponWheel || _localPlayer.GetComponent<EmoteWheel>().inEmoteWheel) {
+            if (_mouse == null || _cinemachineFreeLook.LookAt == null || _pIm.inMenu || _pIm.inWeaponWheel || _localPlayer.GetComponent<EmoteWheel>().inEmoteWheel) {
 				return;
 			}
 

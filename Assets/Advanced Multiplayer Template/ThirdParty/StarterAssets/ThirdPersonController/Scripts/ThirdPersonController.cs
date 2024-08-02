@@ -112,6 +112,7 @@ namespace StarterAssets
         private bool _blockMovement = false;
         private bool _blockCamera = false;
 
+        private PlayerInventoryModule _pIm;
         private bool IsCurrentDeviceMouse
         {
             get
@@ -143,6 +144,7 @@ namespace StarterAssets
         private void Start()
         {
             _cinemachineTargetYaw = CinemachineCameraTarget.transform.rotation.eulerAngles.y;
+            _pIm = GetComponent<PlayerInventoryModule>();
             
             _hasAnimator = TryGetComponent(out _animator);
             _controller = GetComponent<CharacterController>();
@@ -165,13 +167,13 @@ namespace StarterAssets
         {
             if (_blockMovement) return;
 
-            if (RedicionStudio.InventorySystem.PlayerInventoryModule.inMenu || this.GetComponent<RedicionStudio.InventorySystem.PlayerInventoryModule>().inShop || this.GetComponent<Health>().isDeath == true)
+            if (_pIm.inMenu || this.GetComponent<PlayerInventoryModule>().inShop || this.GetComponent<Health>().isDeath == true)
             {
                 LockCameraPosition = true;
                 return;
             }
             LockCameraPosition = false;
-            if (RedicionStudio.InventorySystem.PlayerInventoryModule.inWeaponWheel || GetComponent<EmoteWheel>().inEmoteWheel)
+            if (_pIm.inWeaponWheel || GetComponent<EmoteWheel>().inEmoteWheel)
             {
                 LockCameraPosition = true;
             }
